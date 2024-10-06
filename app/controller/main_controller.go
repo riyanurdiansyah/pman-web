@@ -20,7 +20,7 @@ func (hc *MainController) Create(ctx *gin.Context) {
 }
 
 func (hc *MainController) Update(ctx *gin.Context) {
-	render.RenderView(ctx, constanta.MAIN_VIEW_PATH+"notfound.html", nil)
+	render.RenderView(ctx, constanta.MAIN_VIEW_PATH+"index.html", nil)
 }
 
 func (hc *MainController) Delete(ctx *gin.Context) {

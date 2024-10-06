@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -10,6 +11,7 @@ import (
 	"kalbenutritionals.com/pman/app/business_logic"
 	"kalbenutritionals.com/pman/app/controller"
 	"kalbenutritionals.com/pman/app/helper/model"
+	"kalbenutritionals.com/pman/app/injector"
 )
 
 func InitRoutes(cnf *model.Config) {
@@ -21,7 +23,10 @@ func InitRoutes(cnf *model.Config) {
 	store := cookie.NewStore([]byte(cnf.UserSession.SessionKey))
 	router.Use(sessions.Sessions(cnf.UserSession.SessionID, store))
 
-	authCtrl := &controller.AuthController{}
+	authCtrl, err := injector.InitializeAuthController()
+	if err != nil {
+		log.Fatalf("Failed to initialize auth controller: %v", err)
+	}
 
 	cacheConnection := business_logic.NewRedisCacheBL()
 	sessionMiddleware := cacheConnection.CheckSession("/")
