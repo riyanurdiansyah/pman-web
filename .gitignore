@@ -1,0 +1,15 @@
+# Ignoring binaries generated during debugging
+__debug_bin*
+
+# Ignoring build directories and Go binary files
+/build
+*.exe
+*.out
+*.bin
+
+.vscode
+
+# Ignoring environment files (OPTIONAL)
+# .env
+# .env.dev
+# .env.prod
