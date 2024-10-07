@@ -16,11 +16,11 @@ import (
 // Injectors from injector.go:
 
 func InitializeAuthController() (*controller.AuthController, error) {
-	authDAL := data_access.NewAuthDAL()
-	authBL := business_logic.NewAuthBL(authDAL)
+	iAuthDAL := data_access.NewAuthDAL()
+	iAuthBL := business_logic.NewAuthBL(iAuthDAL)
 	client := business_logic.ProvideRedisClient()
 	redisCacheBL := business_logic.ProvideRedisCacheBL(client)
-	authController := controller.NewAuthController(authBL, redisCacheBL)
+	authController := controller.NewAuthController(iAuthBL, redisCacheBL)
 	return authController, nil
 }
 

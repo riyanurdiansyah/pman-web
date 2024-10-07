@@ -3,16 +3,17 @@ package business_logic
 import (
 	"encoding/json"
 
-	"kalbenutritionals.com/pman/app/data_access"
+	business_logic "kalbenutritionals.com/pman/app/business_logic/interface"
+	data_access "kalbenutritionals.com/pman/app/data_access/interface"
 	model_request "kalbenutritionals.com/pman/app/helper/model/request"
 	model_response "kalbenutritionals.com/pman/app/helper/model/response"
 )
 
 type AuthBL struct {
-	AuthDAL *data_access.AuthDAL
+	AuthDAL data_access.IAuthDAL
 }
 
-func NewAuthBL(authDAL *data_access.AuthDAL) *AuthBL {
+func NewAuthBL(authDAL data_access.IAuthDAL) business_logic.IAuthBL {
 	return &AuthBL{AuthDAL: authDAL}
 }
 
@@ -28,6 +29,18 @@ func (bl *AuthBL) GetTokenAccess() (string, error) {
 }
 
 func (bl *AuthBL) Login(body []byte, headers map[string]string) (*model_response.SigninResponse, error) {
+	var signinResponse model_response.SigninResponse
+	response, err := bl.AuthDAL.Login(body, headers)
+
+	errJson := json.Unmarshal(response, &signinResponse)
+	if errJson != nil {
+		err = errJson
+	}
+
+	return &signinResponse, err
+}
+
+func (bl *AuthBL) GetMenus(body []byte, headers map[string]string) (*model_response.SigninResponse, error) {
 	var signinResponse model_response.SigninResponse
 	response, err := bl.AuthDAL.Login(body, headers)
 

@@ -1,11 +1,18 @@
 package exception
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+func HandleErrorPrint(err error) {
+	if err != nil {
+		fmt.Println("Error : " + err.Error())
+	}
+}
 
 func HandleErrorRedirect(ctx *gin.Context, url string, err error) {
 	if err != nil {

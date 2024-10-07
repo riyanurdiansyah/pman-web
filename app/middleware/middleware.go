@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -9,13 +8,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"kalbenutritionals.com/pman/app/controller"
+	"kalbenutritionals.com/pman/app/helper/exception"
 	"kalbenutritionals.com/pman/app/helper/model"
 	"kalbenutritionals.com/pman/app/injector"
 )
 
 func InitRoutes(cnf *model.Config) {
-
-	//define gin
 	router := gin.Default()
 
 	redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "", DB: 0})
@@ -23,14 +21,11 @@ func InitRoutes(cnf *model.Config) {
 	router.Use(sessions.Sessions(cnf.UserSession.SessionID, store))
 
 	authCtrl, err := injector.InitializeAuthController()
-	if err != nil {
-		log.Fatalf("Failed to initialize auth controller: %v", err)
-	}
+	exception.HandleErrorPrint(err)
 
 	redisCache, err := injector.InitializeRedisCacheBL()
-	if err != nil {
-		log.Fatalf("Failed to initialize auth controller: %v", err)
-	}
+	exception.HandleErrorPrint(err)
+
 	sessionMiddleware := redisCache.CheckSession("/")
 
 	router.GET("/signin", sessionMiddleware, authCtrl.Signin)
@@ -52,9 +47,8 @@ func InitRoutes(cnf *model.Config) {
 
 func AutoGenerateRoutes(router *gin.Engine, controller controller.BaseController, pathPrefix string) {
 	redisCache, err := injector.InitializeRedisCacheBL()
-	if err != nil {
-		log.Fatalf("Failed to initialize auth controller: %v", err)
-	}
+	exception.HandleErrorPrint(err)
+
 	sessionMiddleware := redisCache.CheckSession("/signin")
 
 	router.GET(pathPrefix, sessionMiddleware, controller.Index)

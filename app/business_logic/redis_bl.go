@@ -46,17 +46,17 @@ func ProvideRedisCacheBL(client *redis.Client) *RedisCacheBL {
 // GetUserLoggin implements business_logic.IRedisCachceBL.
 func (r *RedisCacheBL) GetUserLogin(ctx *gin.Context) *model_response.SigninResponse {
 	var signinResponse model_response.SigninResponse
+
 	session := sessions.Default(ctx)
 	sessionRedis := session.Get("session_redis_name").(string)
-	val, err := r.Get(sessionRedis)
-	if err != nil {
-		ctx.Redirect(http.StatusUnauthorized, "/")
+	if sessionRedis == "" {
+		ctx.Redirect(http.StatusUnauthorized, constanta.SIGNIN)
 	}
+	val, err := r.Get(sessionRedis)
+	exception.HandleErrorRedirect(ctx, constanta.SIGNIN, err)
 
 	errs := json.Unmarshal(val, &signinResponse)
-	if errs != nil {
-		return &signinResponse
-	}
+	exception.HandleErrorRedirect(ctx, constanta.SIGNIN, errs)
 
 	return &signinResponse
 }

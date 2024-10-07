@@ -1,6 +1,7 @@
 package data_access
 
 import (
+	data_access "kalbenutritionals.com/pman/app/data_access/interface"
 	"kalbenutritionals.com/pman/app/helper/api"
 	"kalbenutritionals.com/pman/app/helper/constanta"
 )
@@ -8,7 +9,7 @@ import (
 type AuthDAL struct {
 }
 
-func NewAuthDAL() *AuthDAL {
+func NewAuthDAL() data_access.IAuthDAL {
 	return &AuthDAL{}
 }
 
@@ -19,5 +20,10 @@ func (dal *AuthDAL) GetRefreshToken() ([]byte, error) {
 
 func (dal *AuthDAL) Login(body []byte, headers map[string]string) ([]byte, error) {
 	response, err := api.PostRequest(constanta.LOGIN_URL, body, headers)
+	return response, err
+}
+
+func (dal *AuthDAL) GetMenus(body []byte, headers map[string]string) ([]byte, error) {
+	response, err := api.PostRequest(constanta.MENU_URL, body, headers)
 	return response, err
 }

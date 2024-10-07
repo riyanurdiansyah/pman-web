@@ -6,6 +6,8 @@ const (
 	TOKEN_URL = "https://apigw.kalbenutritionals.com/token"
 
 	LOGIN_URL = BASE_URL + "/Mobile/AccountLogin"
+
+	MENU_URL = BASE_URL + "/Mobile/GetMenus"
 )
 
 const (

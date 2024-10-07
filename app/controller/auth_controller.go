@@ -7,27 +7,34 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"kalbenutritionals.com/pman/app/business_logic"
+	business_logic "kalbenutritionals.com/pman/app/business_logic"
+	business_logic_i "kalbenutritionals.com/pman/app/business_logic/interface"
 	"kalbenutritionals.com/pman/app/helper/constanta"
 	"kalbenutritionals.com/pman/app/helper/exception"
 )
 
 type AuthController struct {
-	AuthBL     *business_logic.AuthBL
+	AuthBL     business_logic_i.IAuthBL
 	RedisCache *business_logic.RedisCacheBL
 }
 
-func NewAuthController(authBL *business_logic.AuthBL, redisCache *business_logic.RedisCacheBL) *AuthController {
+func NewAuthController(authBL business_logic_i.IAuthBL, redisCache *business_logic.RedisCacheBL) *AuthController {
 	return &AuthController{AuthBL: authBL, RedisCache: redisCache}
 }
 
 func (c *AuthController) ChooseRole(ctx *gin.Context) {
 	if ctx.Request.Method == "GET" {
-		// cacheConnection := business_logic.NewRedisCacheBL()
-		// user := cacheConnection.GetUserLogin(ctx)
 
-		exception.RenderPage(ctx, constanta.AUTH_VIEW_PATH+"choose_role.html", nil, "")
+		user := c.RedisCache.GetUserLogin(ctx)
+
+		exception.RenderPage(ctx, constanta.AUTH_VIEW_PATH+"choose_role.html", user.ObjData, "")
 	} else if ctx.Request.Method == "POST" {
+
+		selectedRole := ctx.PostForm("role")
+
+		fmt.Println("CEK ROLE : " + selectedRole)
+
+		ctx.Redirect(http.StatusFound, "/")
 	}
 
 }
@@ -45,11 +52,9 @@ func (c *AuthController) Signin(ctx *gin.Context) {
 		username := ctx.PostForm("username")
 		password := ctx.PostForm("password")
 
-		///GET TOKEN JWT FIRST
 		token, errToken := c.AuthBL.GetTokenAccess()
 		exception.HandleError(ctx, constanta.AUTH_VIEW_PATH+"signin.html", errToken, "Failed to get token")
 
-		///SAVE TOKEN JWT
 		session.Set("bearer_token", token)
 
 		data := map[string]string{
