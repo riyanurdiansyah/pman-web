@@ -18,10 +18,29 @@ import (
 func InitializeAuthController() (*controller.AuthController, error) {
 	authDAL := data_access.NewAuthDAL()
 	authBL := business_logic.NewAuthBL(authDAL)
-	authController := controller.NewAuthController(authBL)
+	client := business_logic.ProvideRedisClient()
+	redisCacheBL := business_logic.ProvideRedisCacheBL(client)
+	authController := controller.NewAuthController(authBL, redisCacheBL)
 	return authController, nil
+}
+
+func InitializeMainController() (*controller.MainController, error) {
+	client := business_logic.ProvideRedisClient()
+	redisCacheBL := business_logic.ProvideRedisCacheBL(client)
+	mainController := controller.NewMainController(redisCacheBL)
+	return mainController, nil
+}
+
+func InitializeRedisCacheBL() (*business_logic.RedisCacheBL, error) {
+	client := business_logic.ProvideRedisClient()
+	redisCacheBL := business_logic.ProvideRedisCacheBL(client)
+	return redisCacheBL, nil
 }
 
 // injector.go:
 
-var SuperSet = wire.NewSet(data_access.NewAuthDAL, business_logic.NewAuthBL, controller.NewAuthController)
+var authSet = wire.NewSet(data_access.NewAuthDAL, business_logic.NewAuthBL, business_logic.ProvideRedisClient, business_logic.ProvideRedisCacheBL, controller.NewAuthController)
+
+var mainSet = wire.NewSet(business_logic.ProvideRedisClient, business_logic.ProvideRedisCacheBL, controller.NewMainController)
+
+var redisSet = wire.NewSet(business_logic.ProvideRedisClient, business_logic.ProvideRedisCacheBL)
