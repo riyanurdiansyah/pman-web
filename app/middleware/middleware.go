@@ -1,14 +1,13 @@
 package middleware
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
-	"kalbenutritionals.com/pman/app/business_logic"
+	"github.com/redis/go-redis/v9"
 	"kalbenutritionals.com/pman/app/controller"
 	"kalbenutritionals.com/pman/app/helper/model"
 	"kalbenutritionals.com/pman/app/injector"
@@ -19,7 +18,7 @@ func InitRoutes(cnf *model.Config) {
 	//define gin
 	router := gin.Default()
 
-	fmt.Println("CEK : " + cnf.UserSession.SessionKey)
+	redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "", DB: 0})
 	store := cookie.NewStore([]byte(cnf.UserSession.SessionKey))
 	router.Use(sessions.Sessions(cnf.UserSession.SessionID, store))
 
@@ -28,11 +27,17 @@ func InitRoutes(cnf *model.Config) {
 		log.Fatalf("Failed to initialize auth controller: %v", err)
 	}
 
-	cacheConnection := business_logic.NewRedisCacheBL()
-	sessionMiddleware := cacheConnection.CheckSession("/")
+	redisCache, err := injector.InitializeRedisCacheBL()
+	if err != nil {
+		log.Fatalf("Failed to initialize auth controller: %v", err)
+	}
+	sessionMiddleware := redisCache.CheckSession("/")
 
 	router.GET("/signin", sessionMiddleware, authCtrl.Signin)
-	router.POST("/signin", authCtrl.Signin)
+	router.POST("/signin", sessionMiddleware, authCtrl.Signin)
+
+	router.GET("/choose-role", authCtrl.ChooseRole)
+	router.POST("/choose-role", authCtrl.ChooseRole)
 
 	AutoGenerateRoutes(router, &controller.MainController{}, "/")
 
@@ -46,8 +51,11 @@ func InitRoutes(cnf *model.Config) {
 }
 
 func AutoGenerateRoutes(router *gin.Engine, controller controller.BaseController, pathPrefix string) {
-	cacheConnection := business_logic.NewRedisCacheBL()
-	sessionMiddleware := cacheConnection.CheckSession("/signin")
+	redisCache, err := injector.InitializeRedisCacheBL()
+	if err != nil {
+		log.Fatalf("Failed to initialize auth controller: %v", err)
+	}
+	sessionMiddleware := redisCache.CheckSession("/signin")
 
 	router.GET(pathPrefix, sessionMiddleware, controller.Index)
 	router.GET(pathPrefix+"/:id", sessionMiddleware, controller.Update)

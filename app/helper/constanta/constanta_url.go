@@ -9,6 +9,10 @@ const (
 )
 
 const (
+	SIGNIN = "/signin"
+)
+
+const (
 	API_MOBILE_PATH = "/api/1/mobile/"
 
 	AUTH_VIEW_PATH = "view/auth/"
