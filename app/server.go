@@ -33,21 +33,10 @@ func InitEnvironment() {
 	}
 }
 
-// func (server *Server) Run(addr string) {
-// 	fmt.Printf("Listening to port %s", addr)
-// 	log.Fatal(http.ListenAndServe(addr, server.Router))
-// }
-
 func Run() {
-
-	//initialize environment
 	InitEnvironment()
 
-	//define constanta
 	cnf := constanta.Get()
 
-	//initialize middleware routing
 	middleware.InitRoutes(&cnf)
-
-	// server.Run(":" + cnf.AppConfig.Port)
 }

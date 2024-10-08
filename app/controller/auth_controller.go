@@ -23,16 +23,35 @@ func NewAuthController(authBL business_logic_i.IAuthBL, redisCache *business_log
 }
 
 func (c *AuthController) ChooseRole(ctx *gin.Context) {
+	user := c.RedisCache.GetUserLogin(ctx)
+
 	if ctx.Request.Method == "GET" {
-
-		user := c.RedisCache.GetUserLogin(ctx)
-
 		exception.RenderPage(ctx, constanta.AUTH_VIEW_PATH+"choose_role.html", user.ObjData, "")
 	} else if ctx.Request.Method == "POST" {
+		session := sessions.Default(ctx)
 
 		selectedRole := ctx.PostForm("role")
 
 		fmt.Println("CEK ROLE : " + selectedRole)
+
+		data := map[string]string{
+			"intRoleID":   selectedRole,
+			"txtUserName": user.ObjData.TxtUserName,
+		}
+
+		headers := map[string]string{
+			"Authorization": "Bearer " + session.Get("bearer_token").(string),
+		}
+
+		body, err := json.Marshal(data)
+		exception.HandleError(ctx, constanta.AUTH_VIEW_PATH+"signin.html", err, "Failed to process request")
+
+		menus, errAPI := c.AuthBL.GetMenus(body, headers)
+		exception.HandleError(ctx, constanta.AUTH_VIEW_PATH+"choose-role.html", errAPI, "Failed connect to server")
+
+		redisNameMenu := fmt.Sprintf("%s_%s_menu", user.ObjData.TxtUserName, user.TxtGUID)
+
+		c.RedisCache.Set(redisNameMenu, menus)
 
 		ctx.Redirect(http.StatusFound, "/")
 	}
@@ -86,6 +105,10 @@ func (c *AuthController) Signin(ctx *gin.Context) {
 		errs := session.Save()
 		exception.HandleError(ctx, constanta.AUTH_VIEW_PATH+"signin.html", errs, "Failed to save session")
 
-		ctx.Redirect(http.StatusFound, "/")
+		if len(responseLogin.ObjData.LtRoles) > 1 {
+			ctx.Redirect(http.StatusFound, "/choose-role")
+		} else {
+			ctx.Redirect(http.StatusFound, "/")
+		}
 	}
 }
