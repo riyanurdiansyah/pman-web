@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 	business_logic_i "kalbenutritionals.com/pman/app/business_logic/interface"
 	"kalbenutritionals.com/pman/app/helper/constanta"
 	"kalbenutritionals.com/pman/app/helper/exception"
+	model_response "kalbenutritionals.com/pman/app/helper/model/response"
 )
 
 type AuthController struct {
@@ -28,11 +30,10 @@ func (c *AuthController) ChooseRole(ctx *gin.Context) {
 	if ctx.Request.Method == "GET" {
 		exception.RenderPage(ctx, constanta.AUTH_VIEW_PATH+"choose_role.html", user.ObjData, "")
 	} else if ctx.Request.Method == "POST" {
+		var role model_response.Role
 		session := sessions.Default(ctx)
 
 		selectedRole := ctx.PostForm("role")
-
-		fmt.Println("CEK ROLE : " + selectedRole)
 
 		data := map[string]string{
 			"intRoleID":   selectedRole,
@@ -49,9 +50,24 @@ func (c *AuthController) ChooseRole(ctx *gin.Context) {
 		menus, errAPI := c.AuthBL.GetMenus(body, headers)
 		exception.HandleError(ctx, constanta.AUTH_VIEW_PATH+"choose-role.html", errAPI, "Failed connect to server")
 
+		for _, item := range user.ObjData.LtRoles {
+			num, err := strconv.Atoi(selectedRole)
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			if item.IntRoleId == num {
+				role = item
+				break
+			}
+		}
+
 		redisNameMenu := fmt.Sprintf("%s_%s_menu", user.ObjData.TxtUserName, user.TxtGUID)
+		redisNameRole := fmt.Sprintf("%s_%s_role", user.ObjData.TxtUserName, user.TxtGUID)
 
 		c.RedisCache.Set(redisNameMenu, menus)
+
+		c.RedisCache.Set(redisNameRole, role)
 
 		ctx.Redirect(http.StatusFound, "/")
 	}

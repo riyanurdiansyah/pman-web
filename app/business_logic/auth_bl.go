@@ -2,11 +2,10 @@ package business_logic
 
 import (
 	"encoding/json"
-	"fmt"
-	"log"
 
 	business_logic "kalbenutritionals.com/pman/app/business_logic/interface"
 	data_access "kalbenutritionals.com/pman/app/data_access/interface"
+	"kalbenutritionals.com/pman/app/helper/exception"
 	model_request "kalbenutritionals.com/pman/app/helper/model/request"
 	model_response "kalbenutritionals.com/pman/app/helper/model/response"
 )
@@ -30,16 +29,8 @@ func (bl *AuthBL) GetMenus(body []byte, headers map[string]string) ([]model_resp
 		err = errJson
 	}
 
-	log.Println("CEK RES API : " + menuResponse.ObjData.ObjData)
-
 	errConvert := json.Unmarshal([]byte(menuResponse.ObjData.ObjData), &menus)
-
-	if errConvert != nil {
-		log.Fatalf("Error unmarshalling JSON: %v", err)
-	}
-	for _, item := range menus {
-		fmt.Printf("Menu ID: %d, Menu Name: %s\n", item.IntMenuID, item.TxtMenuName)
-	}
+	exception.HandleErrorPrint(errConvert)
 
 	return menus, err
 }

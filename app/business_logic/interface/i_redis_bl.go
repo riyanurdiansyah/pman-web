@@ -10,4 +10,5 @@ type IRedisCachceBL interface {
 	Set(key string, value interface{}) error
 	CheckSession(redirect string) gin.HandlerFunc
 	GetUserLogin(ctx *gin.Context) *model_response.SigninResponse
+	GetMenus(ctx *gin.Context) []model_response.MenuDataResponse
 }

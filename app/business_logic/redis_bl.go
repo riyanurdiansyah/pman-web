@@ -61,6 +61,24 @@ func (r *RedisCacheBL) GetUserLogin(ctx *gin.Context) *model_response.SigninResp
 	return &signinResponse
 }
 
+func (r *RedisCacheBL) GetMenus(ctx *gin.Context) []model_response.MenuDataResponse {
+	var menus []model_response.MenuDataResponse
+
+	session := sessions.Default(ctx)
+	sessionRedis := session.Get("session_redis_name").(string)
+	if sessionRedis == "" {
+		ctx.Redirect(http.StatusUnauthorized, constanta.SIGNIN)
+	}
+	sessionRedisMenu := sessionRedis + "_menu"
+	val, err := r.Get(sessionRedisMenu)
+	exception.HandleErrorRedirect(ctx, constanta.SIGNIN, err)
+
+	errs := json.Unmarshal(val, &menus)
+	exception.HandleErrorRedirect(ctx, constanta.SIGNIN, errs)
+
+	return menus
+}
+
 func RedirectTo(ctx *gin.Context, redirect string) {
 	currentPath := ctx.Request.URL.Path
 	if strings.Contains(currentPath, "signin") {
